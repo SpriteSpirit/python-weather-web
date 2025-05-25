@@ -3,28 +3,4 @@ name = "weather-web"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13"
-
-dependencies = [
-    "django>=5.2.1",
-    "pytest>=8.3.5",
-    "python-dotenv>=1.1.0",
-]
-
-[tool.ruff]
-line-length = 120  # Общая настройка длины строки
-target-version = "py313"  # Указываем версию Python
-exclude = [  # Исключаемые файлы/папки
-    ".venv",
-    "__pycache__",
-    "build",
-    "dist",
-    "migrations"
-]
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "N", "UP", "B", "A"]
-ignore = ["E501"]
-fixable = ["ALL"]
-
-[tool.ruff.lint.isort]
-known-first-party = ["my_package"]
+dependencies = []
