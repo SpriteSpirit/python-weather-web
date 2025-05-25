@@ -1,23 +1,41 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 import requests
 import os
 
-from requests import Response
+from django.test import AsyncClient
 
 access_key = os.environ.get('API_KEY')
 
-headers = {
-    'X-Yandex-Weather-Key': access_key
-}
 
-def get_weather_info_by_point(lat: float, lon: float) -> Optional[Response]:
+async def get_yandex_weather(lat: float, lon: float) -> Optional[dict]:
+    """
+    Запрос к API Яндекс Погоды
+
+    :param lat: Широта
+    :param lon: Долгота
+    :return: Данные о погоде в формате json или None в случае ошибки
     """
 
-    :param lat: ширина
-    :param lon: долгота
-    :return: ответ с данными о погоде
-    """
-    response = requests.get('https://api.weather.yandex.ru/v2/forecast?lat=52.37125&lon=4.89388', headers=headers)
+    async with AsyncClient() as client:
+        url = "https://api.weather.yandex.ru/v2/forecast?"
+        headers = {
+            'X-Yandex-Weather-Key': access_key
+        }
+        params = {
+            'lat': lat,
+            'lon': lon,
+            'lang': 'ru_RU',
+            'limit': 1,
+            'hours': False
+        }
 
-    print(response.json())
+        try:
+            response = await client.get(url, headers=headers, params=params)
+            response.raise_for_status()
+
+            print(response.json())
+            return response.json()
+        except requests.HTTPError as e:
+            print(f'Ошибка запроса к API Яндекс.Погода: {e}')
+            return None
