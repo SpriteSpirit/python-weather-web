@@ -1,12 +1,151 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    <div>
-        <a>Hello world</a>
+{% extends "weather_app/base.html" %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="content-container">
+    <h1>Прогноз погоды</h1>
+
+    <form method="post" class="search-form">
+        {% csrf_token %}
+        <div class="input-container">
+            <input type="text" name="city" id="city-input" class="city-input"
+                   placeholder="Введите название города..." autocomplete="off">
+            <ul id="suggestions" class="suggestions-list"></ul> <!-- Список подсказок -->
+        </div>
+    </form>
+
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    {% if last_city and not forecast %}
+    <p class="last-search-prompt">
+        Недавно вы искали:
+        <a href="#" onclick="document.getElementById('city-input').value='{{ last_city }}'; document.querySelector('form').submit(); return false;">
+            {{ last_city }}
+        </a>
+    </p>
+    {% endif %}
+
+    {% if forecast %}
+    <div class="weather-result">
+        <h2 class="city-name">{{ city }}</h2>
+
+        <div class="current-weather">
+            <img src="https://yastatic.net/weather/i/icons/funky/dark/{{ now.icon }}.svg" alt="Иконка погоды" class="weather-icon">
+            <div class="current-details">
+                <div class="current-temp">{{ now.temp }}&deg;C</div>
+                <div class="current-condition">{{ now.condition|translate_condition|capfirst }}</div>
+                <div class="current-feels-like">Ощущается как {{ now.feels_like }}&deg;C</div>
+            </div>
+        </div>
+
+        <h3>Прогноз на 3 дня</h3>
+        <div class="forecast-container">
+            {% for day in days %}
+            <div class="forecast-day">
+                <div class="forecast-date">{{ day.date|date:"D, d M" }}</div>
+                <img src="https://yastatic.net/weather/i/icons/funky/dark/{{ day.parts.day_short.icon }}.svg" alt="Иконка погоды" class="forecast-icon">
+                <div class="forecast-temps">
+                    <span class="temp-day">{{ day.parts.day_short.temp }}&deg;</span> /
+                    <span class="temp-night">{{ day.parts.night_short.temp }}&deg;</span>
+                </div>
+                <div class="forecast-condition">{{ day.parts.day_short.condition|translate_condition|capfirst }}</div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-</body>
-</html>
+    {% endif %}
+
+     {% if search_history %}
+    <div class="search-history">
+        <h3>История поиска:</h3>
+        <ul>
+            {% for entry in search_history %}
+            <li>
+                <a href="#" onclick="document.getElementById('city-input').value='{{ entry.city }}'; document.querySelector('form').submit(); return false;">
+                    {{ entry.city }} ({{ entry.search_count }} {% if entry.search_count == 1 %}раз {% else %}раза{% endif %})
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    function initializeSuggest() {
+        var $input = $('#city-input');
+        var $suggestions = $('#suggestions'); // Получаем существующий элемент
+        var suggestTimeout = null;
+
+        // Очищаем предыдущие обработчики
+        $input.off('input');
+        $(document).off('click.suggestions');
+
+        $input.on('input', function () {
+            var query = $(this).val();
+            if (query.length < 2) {
+                $suggestions.empty().hide();
+                return;
+            }
+
+            if (suggestTimeout) {
+                clearTimeout(suggestTimeout);
+            }
+
+            suggestTimeout = setTimeout(function () {
+                $.ajax({
+                    url: 'https://suggest-maps.yandex.ru/v1/suggest',
+                    dataType: 'json',
+                    data: {
+                        apikey: '{{ yandex_suggest_key }}',
+                        text: query,
+                        lang: 'ru_RU',
+                        types: 'locality',
+                        results: 5
+                    },
+                    success: function (data) {
+                        $suggestions.empty();
+
+                        if (data.results && data.results.length > 0) {
+                            data.results.forEach(function (item) {
+                                var cityName = item.title.text;
+                                var $li = $('<li class="suggestion-item"></li>');
+                                $li.text(cityName);
+                                $li.on('click', function (e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    $input.val(cityName);
+                                    $suggestions.empty().hide();
+                                    $('form').submit();
+                                });
+                                $suggestions.append($li);
+                            });
+                            $suggestions.show();
+                        } else {
+                            $suggestions.hide();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Ошибка геосаджеста:', error);
+                    }
+                });
+            }, 300);
+        });
+
+        // Скрываем список при клике вне него
+        $(document).on('click.suggestions', function (e) {
+            if (!$(e.target).closest('.suggestions-list, #city-input').length) {
+                $suggestions.empty().hide();
+            }
+        });
+    }
+
+    // Инициализируем при загрузке страницы и после каждого AJAX-запроса
+    $(document).ready(initializeSuggest);
+    $(document).ajaxComplete(initializeSuggest);
+</script>
+{% endblock %}
