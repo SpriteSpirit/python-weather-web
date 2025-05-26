@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     "weather_app",
     "users",
     "location_field.apps.DefaultConfig",
@@ -86,7 +85,7 @@ DATABASES = {
         "USER": os.environ.get("DB_USER"),
         "PASSWORD": os.environ.get("DB_PASSWORD"),
         "POST": os.environ.get("DB_POST"),
-        "HOST": os.environ.get("DB_HOST"),
+        "HOST": "db",
     }
 }
 
@@ -125,7 +124,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -133,3 +137,35 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://redis:6379/1",
+    }
+}
+YANDEX_GEOCODER_KEY = os.getenv("YANDEX_GEOCODER_KEY")
+YANDEX_SUGGEST_KEY = os.getenv("YANDEX_SUGGEST_KEY")
+YANDEX_WEATHER_KEY = os.getenv("YANDEX_WEATHER_KEY")
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {"level": "ERROR", "class": "logging.FileHandler", "filename": "debug.log", "formatter": "verbose"},
+        "console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "verbose"},
+    },
+    "loggers": {
+        "weather_app": {
+            "handlers": ["file", "console"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+    },
+}
