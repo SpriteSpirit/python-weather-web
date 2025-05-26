@@ -1,60 +1,116 @@
-from typing import Optional, Tuple
+import logging
+from typing import Any
 
 import requests
-import os
+from django.conf import settings
 
-from django.test import AsyncClient
+GEOCODER_API_URL = "https://geocode-maps.yandex.ru/1.x/"
+WEATHER_API_URL = "https://api.weather.yandex.ru/v2/forecast"
 
-from weather_app.models import City
-
-access_key = os.environ.get('API_KEY')
+logger = logging.getLogger("weather_app")
 
 
-async def get_yandex_weather(lat: float, lon: float) -> Optional[dict]:
+def get_coordinates(city_name: str) -> tuple[float, float, str] | None:
     """
-    Запрос к API Яндекс Погоды
-
-    :param lat: Широта
-    :param lon: Долгота
-    :return: Данные о погоде в формате json или None в случае ошибки
+    Получает координаты и нормализованное название города.
+    :param city_name: Название города.
+    :return: Кортеж (широта, долгота, нормализованное название) или None.
     """
 
-    async with AsyncClient() as client:
-        url = "https://api.weather.yandex.ru/v2/forecast?"
-        headers = {
-            'X-Yandex-Weather-Key': access_key
-        }
-        params = {
-            'lat': lat,
-            'lon': lon,
-            'lang': 'ru_RU',
-            'limit': 1,
-            'hours': False
-        }
-
-        try:
-            response = await client.get(url, headers=headers, params=params)
-            response.raise_for_status()
-
-            print(response.json())
-            return response.json()
-        except requests.HTTPError as e:
-            print(f'Ошибка запроса к API Яндекс.Погода: {e}')
-            return None
-
-
-def get_city_coordinates_by_name(city_name: str) -> Optional[Tuple[float, float]]:
-    """
-    Получение координат из модели города City
-
-    :param city_name: Название города
-    :return: Кортеж из широты и долготы или None в случае ошибки
-    """
+    params = {
+        "apikey": settings.YANDEX_GEOCODER_KEY,
+        "geocode": city_name,
+        "format": "json",
+        "results": 1,
+        "kind": "locality",
+        "lang": "ru_RU",
+    }
 
     try:
-        city = City.objects.get(name=city_name)
-        lat, lon = map(float, city.location.split(','))
+        response = requests.get(GEOCODER_API_URL, params=params)
+        response.raise_for_status()
+        data = response.json()
+        features = data.get("response", {}).get("GeoObjectCollection", {}).get("featureMember", [])
 
-        return lat, lon
-    except (City.DoesNotExist, ValueError, AttributeError):
+        if not features:
+            logger.warning(f"Geocoder: не найдены объекты для города '{city_name}'")
+            return None
+
+        geo_object = features[0].get("GeoObject", {})
+
+        if not geo_object:
+            logger.error(f"Geocoder: отсутствует GeoObject для города '{city_name}'")
+            return None
+
+        point = geo_object.get("Point", {})
+        pos = point.get("pos")
+
+        if not pos:
+            logger.error(f"Geocoder: отсутствуют координаты (pos) для города '{city_name}'")
+            return None
+
+        longitude, latitude = map(float, pos.split())
+        normalized_city = geo_object.get("name")
+
+        meta_data = geo_object.get("metaDataProperty", {}).get("GeocoderMetaData", {})
+        components = meta_data.get("Address", {}).get("Components", [])
+
+        for comp in components:
+            if comp.get("kind") == "locality":
+                normalized_city = comp.get("name")
+                break
+
+        if not normalized_city:
+            try:
+                address_details = meta_data.get("AddressDetails", {})
+                country = address_details.get("Country", {})
+                admin_area = country.get("AdministrativeArea", {})
+                locality = admin_area.get("Locality", {})
+                loc_name = locality.get("LocalityName")
+
+                if loc_name:
+                    normalized_city = loc_name
+            except Exception:
+                logger.warning(f"Не удалось получить LocalityName для города '{city_name}'.")
+
+        if not normalized_city:
+            normalized_city = geo_object.get("name")
+
+        if not normalized_city:
+            logger.error(f"Geocoder: не удалось определить название города '{city_name}'. Ответ: {data}")
+            return None
+
+        logger.info(f"Geocoder:  найдено '{normalized_city}' ({latitude}, {longitude}) для ввода '{city_name}'")
+
+        return latitude, longitude, normalized_city
+
+    except requests.RequestException as e:
+        logger.error(f"Geocoder RequestException: {str(e)}")
+
+        return None
+    except (KeyError, IndexError, ValueError) as e:
+        logger.error(f"Geocoder ошибка парсинга: {type(e).__name__} - {str(e)}")
+
+        return None
+
+
+def get_weather_forecast(lat: float, lon: float) -> dict[str, Any] | None:
+    """
+    Получает прогноз погоды по координатам.
+    :param lat: Широта в градусах.
+    :param lon: Долгота в градусах.
+    :return: Словарь с данными погоды от API или None в случае ошибки.
+    """
+
+    headers = {"X-Yandex-API-Key": settings.YANDEX_WEATHER_KEY}
+    params = {"lat": lat, "lon": lon, "lang": "ru_RU", "limit": 3}
+
+    try:
+        response = requests.get(WEATHER_API_URL, headers=headers, params=params)
+        response.raise_for_status()
+
+        return response.json()
+    except requests.RequestException as e:
+        logger.error(f"Ошибка API: {e}")
+
         return None
