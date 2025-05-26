@@ -1,0 +1,384 @@
+:root {
+    --breakpoint-mobile: 576px;
+    --breakpoint-tablet: 768px;
+    --breakpoint-desktop: 1200px;
+
+    --primary-color: #2A4B7C;
+    --secondary-color: #5B8CBE;
+    --accent-color: #FF7F50;
+    --background-gradient: linear-gradient(135deg, #2A4B7C 0%, #5B8CBE 100%);
+    --text-color: #F0F4F8;
+    --link-text-color: #90ef98;
+    --text-light: rgba(248, 241, 241, 0.95);
+}
+
+/* Базовые стили (Mobile First) */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 1rem;
+    min-height: 100vh;
+    background: var(--background-gradient);
+    color: var(--text-color);
+}
+
+.content-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Заголовки */
+h1, h2, h3 {
+    text-align: center;
+    margin: 0 auto 1.5rem;
+    padding: 0 15px;
+    color: var(--text-light);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    font-size: 2.2rem;
+    line-height: 1.2;
+}
+
+/* Поисковая форма */
+.search-form {
+    position: relative;
+    margin: 0 auto 3rem;
+    max-width: 700px;
+}
+
+.city-input {
+    width: 100%;
+    padding: 1.2rem;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.city-input:focus {
+    box-shadow: 0 0 0 3px rgba(42, 75, 124, 0.2);
+}
+
+/* Текущая погода */
+.current-weather {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin: 2rem 0;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 1rem;
+}
+
+.weather-icon {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.current-details {
+    text-align: center;
+}
+
+.current-temp {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-light);
+}
+
+/* Прогноз по дням */
+.forecast-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.forecast-day {
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    backdrop-filter: blur(5px);
+}
+
+/* История поиска */
+.search-history {
+    margin-top: 3rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+}
+
+.search-history ul {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.search-history a {
+    display: block;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-light) !important;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.search-history a:hover {
+    background: rgba(248, 196, 196, 0.25);
+    transform: translateY(-2px);
+}
+
+.last-search-prompt a {
+    display: block;
+    width: 10%;
+    margin: auto;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-light) !important;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.last-search-prompt a:hover {
+    background: rgba(248, 196, 196, 0.25);
+    transform: translateY(-2px);
+}
+
+/* Обновленные стили для блока погоды */
+.weather-result {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin: 2rem 0;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.city-name {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: var(--text-light);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.current-weather {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    position: relative;
+}
+
+.weather-icon {
+    width: 120px;
+    height: 120px;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    transition: transform 0.3s ease;
+}
+
+.current-details {
+    text-align: center;
+}
+
+.current-temp {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--text-light);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.current-condition {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 0.75rem;
+}
+
+.current-feels-like {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0.9;
+}
+
+/* Стили для выпадающего списка */
+.suggestions-list {
+    position: absolute;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    background: #ffffff !important;
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    margin-top: 8px;
+    z-index: 1000;
+    list-style: none;
+    padding: 0;
+}
+
+.suggestion-item {
+    padding: 12px 20px;
+    color: var(--primary-color);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(42, 75, 124, 0.1);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background: rgba(42, 75, 124, 0.05);
+    transform: translateX(5px);
+}
+
+.suggestion-item::before {
+    content: "📍";
+    margin-right: 12px;
+    font-size: 1.1em;
+    opacity: 0.7;
+}
+
+
+
+/* Адаптация для десктопов */
+@media (min-width: 768px) {
+    .current-weather {
+        flex-direction: row;
+        justify-content: center;
+        gap: 3rem;
+    }
+
+    .weather-icon {
+        width: 150px;
+        height: 150px;
+    }
+
+    .current-temp {
+        font-size: 4rem;
+    }
+
+    .current-condition {
+        font-size: 1.5rem;
+    }
+}
+
+/* Анимация при наведении */
+.weather-icon:hover {
+    transform: scale(1.05) rotate(5deg);
+}
+
+/* Для темной темы */
+@media (prefers-color-scheme: dark) {
+    .suggestions-list {
+        background: #2A4B7C !important;
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .suggestion-item {
+        color: white;
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .suggestion-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* Адаптивные стили */
+@media (min-width: 576px) {
+    .content-container {
+        padding: 2rem;
+    }
+
+    .forecast-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .search-history ul {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 768px) {
+    body {
+        padding: 2rem;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    .current-weather {
+        flex-direction: row;
+        text-align: left;
+        padding: 3rem;
+    }
+
+    .weather-icon {
+        margin-bottom: 0;
+        margin-right: 3rem;
+    }
+
+    .current-details {
+        text-align: left;
+    }
+
+    .forecast-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .search-history ul {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    .content-container {
+        max-width: 1200px;
+    }
+
+    .forecast-container {
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .current-temp {
+        font-size: 2.5rem;
+    }
+
+    .search-history a {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+}
